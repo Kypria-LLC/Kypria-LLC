@@ -1,0 +1,644 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🏛️ Kypria-LLC Canon Audit Tool</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e, #16213e);
+            color: #e94560;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            padding: 30px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(233, 69, 96, 0.2);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            color: #f39c12;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 0 0 20px rgba(243, 156, 18, 0.5);
+        }
+
+        .header p {
+            color: #bdc3c7;
+            font-size: 1.1em;
+        }
+
+        .auth-section {
+            background: rgba(52, 73, 94, 0.3);
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            border-left: 4px solid #e94560;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #ecf0f1;
+            font-weight: 500;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid rgba(233, 69, 96, 0.3);
+            border-radius: 5px;
+            background: rgba(255, 255, 255, 0.1);
+            color: #ecf0f1;
+            font-size: 14px;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: #f39c12;
+            box-shadow: 0 0 10px rgba(243, 156, 18, 0.3);
+        }
+
+        .btn {
+            background: linear-gradient(45deg, #e94560, #f39c12);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(233, 69, 96, 0.4);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .results {
+            margin-top: 30px;
+        }
+
+        .repo-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .repo-card {
+            background: rgba(52, 73, 94, 0.4);
+            border-radius: 10px;
+            padding: 20px;
+            border-left: 4px solid #3498db;
+            transition: all 0.3s ease;
+        }
+
+        .repo-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+        }
+
+        .repo-card.compliant {
+            border-left-color: #27ae60;
+        }
+
+        .repo-card.non-compliant {
+            border-left-color: #e74c3c;
+        }
+
+        .repo-card.partial {
+            border-left-color: #f39c12;
+        }
+
+        .repo-name {
+            font-size: 1.2em;
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: #ecf0f1;
+        }
+
+        .repo-status {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .status-badge {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .status-badge.compliant {
+            background: rgba(39, 174, 96, 0.2);
+            color: #27ae60;
+            border: 1px solid #27ae60;
+        }
+
+        .status-badge.non-compliant {
+            background: rgba(231, 76, 60, 0.2);
+            color: #e74c3c;
+            border: 1px solid #e74c3c;
+        }
+
+        .status-badge.partial {
+            background: rgba(243, 156, 18, 0.2);
+            color: #f39c12;
+            border: 1px solid #f39c12;
+        }
+
+        .workflow-list {
+            font-size: 12px;
+            color: #bdc3c7;
+            margin-top: 10px;
+        }
+
+        .summary {
+            background: rgba(52, 73, 94, 0.3);
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 20px;
+            margin-top: 15px;
+        }
+
+        .summary-item {
+            background: rgba(233, 69, 96, 0.1);
+            padding: 15px;
+            border-radius: 8px;
+        }
+
+        .summary-number {
+            font-size: 2em;
+            font-weight: 700;
+            color: #f39c12;
+        }
+
+        .summary-label {
+            font-size: 0.9em;
+            color: #bdc3c7;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+        }
+
+        .spinner {
+            border: 4px solid rgba(233, 69, 96, 0.3);
+            border-top: 4px solid #e94560;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .error {
+            background: rgba(231, 76, 60, 0.2);
+            color: #e74c3c;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #e74c3c;
+            margin: 20px 0;
+        }
+
+        .report-section {
+            margin-top: 30px;
+            background: rgba(52, 73, 94, 0.2);
+            padding: 20px;
+            border-radius: 10px;
+        }
+
+        .report-content {
+            background: #2c3e50;
+            padding: 15px;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            white-space: pre-wrap;
+            max-height: 400px;
+            overflow-y: auto;
+            border: 1px solid rgba(233, 69, 96, 0.3);
+        }
+
+        @media (max-width: 768px) {
+            .repo-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .summary-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏛️ Kypria-LLC Canon Audit Tool</h1>
+            <p>Legendary automation reconnaissance across your GitHub organization</p>
+        </div>
+
+        <div class="auth-section">
+            <h3 style="color: #f39c12; margin-bottom: 15px;">🔑 Authentication & Configuration</h3>
+            
+            <div class="form-group">
+                <label for="pat">GitHub Personal Access Token:</label>
+                <input type="password" id="pat" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx">
+                <small style="color: #bdc3c7; font-size: 12px; margin-top: 5px; display: block;">
+                    Requires: repo, read:org permissions. <a href="https://github.com/settings/tokens/new" target="_blank" style="color: #f39c12;">Create token</a>
+                </small>
+            </div>
+
+            <div class="form-group">
+                <label for="organization">Organization:</label>
+                <input type="text" id="organization" value="Kypria-LLC" placeholder="Organization name">
+            </div>
+
+            <button class="btn" onclick="startAudit()">⚡ Begin Reconnaissance</button>
+        </div>
+
+        <div id="results" class="results" style="display: none;">
+            <div id="summary" class="summary"></div>
+            <div id="repositories" class="repo-grid"></div>
+            <div id="report" class="report-section" style="display: none;">
+                <h3 style="color: #f39c12; margin-bottom: 15px;">📋 Generated Report</h3>
+                <button class="btn" onclick="downloadReport()" style="margin-bottom: 15px;">⬇️ Download Report</button>
+                <div id="reportContent" class="report-content"></div>
+            </div>
+        </div>
+
+        <div id="loading" class="loading" style="display: none;">
+            <div class="spinner"></div>
+            <p>🔍 Scanning repositories...</p>
+        </div>
+
+        <div id="error" class="error" style="display: none;"></div>
+    </div>
+
+    <script>
+        let auditData = {};
+        let reportContent = '';
+
+        async function startAudit() {
+            const pat = document.getElementById('pat').value.trim();
+            const org = document.getElementById('organization').value.trim();
+
+            if (!pat || !org) {
+                showError('Please provide both GitHub PAT and organization name');
+                return;
+            }
+
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('results').style.display = 'none';
+            document.getElementById('error').style.display = 'none';
+
+            try {
+                const repos = await fetchRepositories(pat, org);
+                const auditResults = await auditRepositories(pat, org, repos);
+                
+                auditData = {
+                    organization: org,
+                    timestamp: new Date().toISOString(),
+                    repositories: auditResults,
+                    summary: calculateSummary(auditResults)
+                };
+
+                displayResults(auditData);
+                generateReport(auditData);
+                
+            } catch (error) {
+                showError(`Audit failed: ${error.message}`);
+            } finally {
+                document.getElementById('loading').style.display = 'none';
+            }
+        }
+
+        async function fetchRepositories(pat, org) {
+            const response = await fetch(`https://api.github.com/orgs/${org}/repos?per_page=100`, {
+                headers: {
+                    'Authorization': `token ${pat}`,
+                    'Accept': 'application/vnd.github.v3+json'
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error(`Failed to fetch repositories: ${response.status} ${response.statusText}`);
+            }
+
+            return await response.json();
+        }
+
+        async function auditRepositories(pat, org, repos) {
+            const results = [];
+
+            for (const repo of repos) {
+                try {
+                    const workflows = await fetchWorkflows(pat, org, repo.name);
+                    const branches = await fetchBranches(pat, org, repo.name);
+                    
+                    const hasCanonCI = workflows.some(w => 
+                        w.name.toLowerCase().includes('canon') || 
+                        w.name.toLowerCase().includes('kypria')
+                    );
+
+                    const status = hasCanonCI ? 'compliant' : 
+                                workflows.length > 0 ? 'partial' : 'non-compliant';
+
+                    results.push({
+                        name: repo.name,
+                        url: repo.html_url,
+                        private: repo.private,
+                        defaultBranch: repo.default_branch,
+                        workflows: workflows,
+                        workflowCount: workflows.length,
+                        hasCanonCI: hasCanonCI,
+                        status: status,
+                        branches: branches
+                    });
+
+                } catch (error) {
+                    results.push({
+                        name: repo.name,
+                        url: repo.html_url,
+                        private: repo.private,
+                        status: 'error',
+                        error: error.message
+                    });
+                }
+
+                // Add delay to avoid rate limiting
+                await new Promise(resolve => setTimeout(resolve, 100));
+            }
+
+            return results;
+        }
+
+        async function fetchWorkflows(pat, org, repo) {
+            try {
+                const response = await fetch(`https://api.github.com/repos/${org}/${repo}/actions/workflows`, {
+                    headers: {
+                        'Authorization': `token ${pat}`,
+                        'Accept': 'application/vnd.github.v3+json'
+                    }
+                });
+
+                if (!response.ok) return [];
+                
+                const data = await response.json();
+                return data.workflows || [];
+            } catch (error) {
+                return [];
+            }
+        }
+
+        async function fetchBranches(pat, org, repo) {
+            try {
+                const response = await fetch(`https://api.github.com/repos/${org}/${repo}/branches`, {
+                    headers: {
+                        'Authorization': `token ${pat}`,
+                        'Accept': 'application/vnd.github.v3+json'
+                    }
+                });
+
+                if (!response.ok) return [];
+                
+                return await response.json();
+            } catch (error) {
+                return [];
+            }
+        }
+
+        function calculateSummary(repositories) {
+            const total = repositories.length;
+            const compliant = repositories.filter(r => r.status === 'compliant').length;
+            const partial = repositories.filter(r => r.status === 'partial').length;
+            const nonCompliant = repositories.filter(r => r.status === 'non-compliant').length;
+            const errors = repositories.filter(r => r.status === 'error').length;
+
+            return {
+                total,
+                compliant,
+                partial,
+                nonCompliant,
+                errors,
+                complianceRate: total > 0 ? Math.round((compliant / total) * 100) : 0
+            };
+        }
+
+        function displayResults(data) {
+            const { repositories, summary } = data;
+
+            // Display summary
+            const summaryEl = document.getElementById('summary');
+            summaryEl.innerHTML = `
+                <h3 style="color: #f39c12; margin-bottom: 20px;">📊 Canon Compliance Summary</h3>
+                <div class="summary-grid">
+                    <div class="summary-item">
+                        <div class="summary-number">${summary.total}</div>
+                        <div class="summary-label">Total Repos</div>
+                    </div>
+                    <div class="summary-item">
+                        <div class="summary-number">${summary.compliant}</div>
+                        <div class="summary-label">✅ Compliant</div>
+                    </div>
+                    <div class="summary-item">
+                        <div class="summary-number">${summary.partial}</div>
+                        <div class="summary-label">🔄 Partial</div>
+                    </div>
+                    <div class="summary-item">
+                        <div class="summary-number">${summary.nonCompliant}</div>
+                        <div class="summary-label">❌ Missing</div>
+                    </div>
+                    <div class="summary-item">
+                        <div class="summary-number">${summary.complianceRate}%</div>
+                        <div class="summary-label">Compliance Rate</div>
+                    </div>
+                </div>
+            `;
+
+            // Display repositories
+            const reposEl = document.getElementById('repositories');
+            reposEl.innerHTML = repositories.map(repo => `
+                <div class="repo-card ${repo.status}">
+                    <div class="repo-name">
+                        <a href="${repo.url}" target="_blank" style="color: inherit; text-decoration: none;">
+                            ${repo.name} ${repo.private ? '🔒' : '🌐'}
+                        </a>
+                    </div>
+                    <div class="repo-status">
+                        <span class="status-badge ${repo.status}">
+                            ${repo.status === 'compliant' ? '✅ Canon Ready' : 
+                              repo.status === 'partial' ? '🔄 Needs Canon' : 
+                              repo.status === 'non-compliant' ? '❌ No Workflows' : 
+                              '⚠️ Error'}
+                        </span>
+                        <span style="font-size: 12px; color: #bdc3c7;">
+                            ${repo.workflowCount || 0} workflows
+                        </span>
+                    </div>
+                    ${repo.workflows ? `
+                        <div class="workflow-list">
+                            <strong>Workflows:</strong><br>
+                            ${repo.workflows.slice(0, 3).map(w => `• ${w.name}`).join('<br>')}
+                            ${repo.workflows.length > 3 ? `<br>• +${repo.workflows.length - 3} more` : ''}
+                        </div>
+                    ` : ''}
+                    ${repo.error ? `<div style="color: #e74c3c; font-size: 12px; margin-top: 10px;">Error: ${repo.error}</div>` : ''}
+                </div>
+            `).join('');
+
+            document.getElementById('results').style.display = 'block';
+            document.getElementById('report').style.display = 'block';
+        }
+
+        function generateReport(data) {
+            const timestamp = new Date().toLocaleString();
+            const { repositories, summary, organization } = data;
+
+            reportContent = `# 🏛️ ${organization} Canon Compliance Report
+
+**Generated:** ${timestamp}
+**Tool:** Kypria-LLC Canon Audit Tool
+**Organization:** ${organization}
+
+## 📊 Executive Summary
+
+| Metric | Count | Percentage |
+|--------|-------|------------|
+| Total Repositories | ${summary.total} | 100% |
+| ✅ Canon Compliant | ${summary.compliant} | ${Math.round((summary.compliant/summary.total)*100)}% |
+| 🔄 Partial Compliance | ${summary.partial} | ${Math.round((summary.partial/summary.total)*100)}% |
+| ❌ Non-Compliant | ${summary.nonCompliant} | ${Math.round((summary.nonCompliant/summary.total)*100)}% |
+| ⚠️ Audit Errors | ${summary.errors} | ${Math.round((summary.errors/summary.total)*100)}% |
+
+**Overall Compliance Rate: ${summary.complianceRate}%**
+
+## 📋 Repository Details
+
+| Repository | Status | Workflows | Canon CI | Notes |
+|------------|--------|-----------|----------|-------|
+${repositories.map(repo => 
+`| [${repo.name}](${repo.url}) | ${getStatusEmoji(repo.status)} ${repo.status} | ${repo.workflowCount || 0} | ${repo.hasCanonCI ? '✅' : '❌'} | ${repo.private ? '🔒 Private' : '🌐 Public'} |`
+).join('\n')}
+
+## 🎯 Deployment Targets
+
+### 🔴 High Priority (No Workflows)
+${repositories.filter(r => r.status === 'non-compliant').map(r => `- **${r.name}**: No CI/CD automation present`).join('\n') || 'None'}
+
+### 🟡 Medium Priority (Missing Canon)
+${repositories.filter(r => r.status === 'partial').map(r => `- **${r.name}**: Has ${r.workflowCount} workflows but missing Canon CI`).join('\n') || 'None'}
+
+### 🟢 Canon Compliant
+${repositories.filter(r => r.status === 'compliant').map(r => `- **${r.name}**: Canon CI deployed and active`).join('\n') || 'None'}
+
+## 🚀 Recommended Actions
+
+${summary.complianceRate < 50 ? 
+`### 🔴 Critical Actions Required
+- Deploy Canon CI workflow to ${summary.nonCompliant + summary.partial} repositories
+- Establish organization-wide workflow templates
+- Implement branch protection policies` :
+summary.complianceRate < 90 ?
+`### 🟡 Enhancement Phase
+- Complete Canon CI deployment to remaining ${summary.nonCompliant + summary.partial} repositories  
+- Standardize existing workflows with Canon templates
+- Review and update security policies` :
+`### 🟢 Maintenance Phase
+- Monitor compliance with automated reporting
+- Evolve Canon templates based on organizational needs
+- Consider advanced automation features`}
+
+## 📚 Next Steps
+
+1. **Deploy Canon CI** to repositories marked as non-compliant or partial
+2. **Configure branch protection** rules across all repositories
+3. **Establish reusable workflows** in a central canon repository
+4. **Schedule regular audits** to maintain compliance
+
+---
+*Report generated by Kypria-LLC Canon Audit Tool — Legendary automation reconnaissance* 🏛️`;
+
+            document.getElementById('reportContent').textContent = reportContent;
+        }
+
+        function getStatusEmoji(status) {
+            switch(status) {
+                case 'compliant': return '✅';
+                case 'partial': return '🔄';
+                case 'non-compliant': return '❌';
+                case 'error': return '⚠️';
+                default: return '❓';
+            }
+        }
+
+        function downloadReport() {
+            const blob = new Blob([reportContent], { type: 'text/markdown' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `kypria_canon_audit_${new Date().toISOString().slice(0,19).replace(/:/g,'-')}.md`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        function showError(message) {
+            const errorEl = document.getElementById('error');
+            errorEl.textContent = message;
+            errorEl.style.display = 'block';
+        }
+    </script>
+</body>
+</html>

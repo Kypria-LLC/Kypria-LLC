@@ -1,0 +1,143 @@
+{
+  "paypal": {
+    "tiers": [
+      {
+        "name": "Bronze Patron",
+        "level": 1,
+        "threshold": 5,
+        "color": "#CD7F32",
+        "badgeUrl": "https://raw.githubusercontent.com/Kypria-LLC/crest-vault/main/badges/bronze-patron.svg",
+        "benefits": [
+          "Patron badge on profile",
+          "Access to patron-only Discord channel",
+          "Monthly newsletter"
+        ]
+      },
+      {
+        "name": "Silver Patron",
+        "level": 2,
+        "threshold": 15,
+        "color": "#C0C0C0",
+        "badgeUrl": "https://raw.githubusercontent.com/Kypria-LLC/crest-vault/main/badges/silver-patron.svg",
+        "benefits": [
+          "Silver badge on profile",
+          "Early access to content",
+          "Voting rights on project decisions",
+          "Priority support"
+        ]
+      },
+      {
+        "name": "Gold Patron",
+        "level": 3,
+        "threshold": 50,
+        "color": "#FFD700",
+        "badgeUrl": "https://raw.githubusercontent.com/Kypria-LLC/crest-vault/main/badges/gold-patron.svg",
+        "benefits": [
+          "Gold badge on profile",
+          "Exclusive video content",
+          "1-on-1 consulting sessions",
+          "Custom artifact generation",
+          "Featured in Hall of Patrons"
+        ]
+      },
+      {
+        "name": "Diamond Patron",
+        "level": 4,
+        "threshold": 100,
+        "color": "#B9F2FF",
+        "badgeUrl": "https://raw.githubusercontent.com/Kypria-LLC/crest-vault/main/badges/diamond-patron.svg",
+        "benefits": [
+          "Diamond badge on profile",
+          "Co-creator status",
+          "Private repository access",
+          "Quarterly strategy calls",
+          "Custom project consulting"
+        ]
+      }
+    ]
+  },
+  "github": {
+    "tiers": [
+      {
+        "name": "Supporter",
+        "level": 1,
+        "threshold": 1,
+        "color": "#6E5494",
+        "badgeUrl": "https://raw.githubusercontent.com/Kypria-LLC/crest-vault/main/badges/gh-supporter.svg",
+        "benefits": [
+          "GitHub Sponsor badge",
+          "Name in SPONSORS.md",
+          "Monthly updates"
+        ]
+      },
+      {
+        "name": "Contributor",
+        "level": 2,
+        "threshold": 10,
+        "color": "#0969DA",
+        "badgeUrl": "https://raw.githubusercontent.com/Kypria-LLC/crest-vault/main/badges/gh-contributor.svg",
+        "benefits": [
+          "Contributor badge",
+          "Access to private repos",
+          "Early feature previews"
+        ]
+      },
+      {
+        "name": "Champion",
+        "level": 3,
+        "threshold": 50,
+        "color": "#238636",
+        "badgeUrl": "https://raw.githubusercontent.com/Kypria-LLC/crest-vault/main/badges/gh-champion.svg",
+        "benefits": [
+          "Champion badge",
+          "Custom issue priority",
+          "Quarterly video calls",
+          "Logo on project website"
+        ]
+      }
+    ]
+  },
+  "patreon": {
+    "tiers": [
+      {
+        "name": "Initiate",
+        "level": 1,
+        "threshold": 3,
+        "color": "#F96854",
+        "badgeUrl": "https://raw.githubusercontent.com/Kypria-LLC/crest-vault/main/badges/patreon-initiate.svg",
+        "benefits": [
+          "Patreon badge",
+          "Behind-the-scenes content",
+          "Community Discord access"
+        ]
+      },
+      {
+        "name": "Adept",
+        "level": 2,
+        "threshold": 10,
+        "color": "#FF424D",
+        "badgeUrl": "https://raw.githubusercontent.com/Kypria-LLC/crest-vault/main/badges/patreon-adept.svg",
+        "benefits": [
+          "Adept badge",
+          "Exclusive tutorials",
+          "Monthly Q&A sessions",
+          "Vote on content topics"
+        ]
+      },
+      {
+        "name": "Master",
+        "level": 3,
+        "threshold": 25,
+        "color": "#FF1A1A",
+        "badgeUrl": "https://raw.githubusercontent.com/Kypria-LLC/crest-vault/main/badges/patreon-master.svg",
+        "benefits": [
+          "Master badge",
+          "Private workshops",
+          "Custom content requests",
+          "Featured collaborator",
+          "Lifetime archive access"
+        ]
+      }
+    ]
+  }
+}

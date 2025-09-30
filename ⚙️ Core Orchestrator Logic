@@ -1,0 +1,240 @@
+/**
+ * 🏛️ WEALTH CONDUIT — Sacred Revenue Orchestrator
+ * 
+ * Central nervous system that transforms webhook events into
+ * verified treasury flows with full audit trails.
+ * 
+ * Canon: Every transaction passes through verification → cresting → notification
+ */
+
+import { EventEmitter } from 'events';
+import { RevenueEvent, SponsorRecord, CrestTier } from '../models';
+import { PayPalHandler } from '../handlers/paypal-handler';
+import { GitHubHandler } from '../handlers/github-handler';
+import { VerificationEngine } from './verification-engine';
+import { CrestAssignment } from './crest-assignment';
+import { DiscordNotifier } from '../integrations/discord-notifier';
+import { CrestVaultSync } from '../integrations/crest-vault-sync';
+import { AuditLogger } from '../utils/audit-logger';
+import { retryWithBackoff } from '../utils/retry-logic';
+
+export class WealthOrchestrator extends EventEmitter {
+  private paypalHandler: PayPalHandler;
+  private githubHandler: GitHubHandler;
+  private verifier: VerificationEngine;
+  private cresting: CrestAssignment;
+  private discord: DiscordNotifier;
+  private vault: CrestVaultSync;
+  private audit: AuditLogger;
+
+  constructor(config: OrchestratorConfig) {
+    super();
+    
+    this.paypalHandler = new PayPalHandler(config.paypal);
+    this.githubHandler = new GitHubHandler(config.github);
+    this.verifier = new VerificationEngine(config.verification);
+    this.cresting = new CrestAssignment(config.tiers);
+    this.discord = new DiscordNotifier(config.discord);
+    this.vault = new CrestVaultSync(config.vault);
+    this.audit = new AuditLogger(config.auditPath);
+
+    this.setupEventListeners();
+  }
+
+  /**
+   * Main entry point — processes incoming revenue event
+   */
+  async processEvent(rawEvent: any, source: 'paypal' | 'github' | 'patreon'): Promise<ProcessingResult> {
+    const startTime = Date.now();
+    const eventId = this.audit.generateEventId();
+
+    try {
+      // Step 1: Parse event based on source
+      const revenueEvent = await this.parseEvent(rawEvent, source);
+      
+      await this.audit.log({
+        eventId,
+        stage: 'received',
+        source,
+        data: revenueEvent,
+        timestamp: new Date()
+      });
+
+      // Step 2: Verify authenticity
+      const isValid = await retryWithBackoff(() => 
+        this.verifier.verify(revenueEvent, source)
+      );
+
+      if (!isValid) {
+        throw new Error('Event verification failed');
+      }
+
+      await this.audit.log({
+        eventId,
+        stage: 'verified',
+        timestamp: new Date()
+      });
+
+      // Step 3: Map to canonical sponsor record
+      const sponsor = await this.mapToSponsor(revenueEvent, source);
+
+      // Step 4: Determine crest tier
+      const tier = this.cresting.determineTier(sponsor.amount, source);
+
+      await this.audit.log({
+        eventId,
+        stage: 'tier_assigned',
+        tier,
+        timestamp: new Date()
+      });
+
+      // Step 5: Apply crest (update vault)
+      const crestResult = await retryWithBackoff(() => 
+        this.vault.applyCrest(sponsor, tier)
+      );
+
+      await this.audit.log({
+        eventId,
+        stage: 'crest_applied',
+        crestResult,
+        timestamp: new Date()
+      });
+
+      // Step 6: Notify Discord
+      const notificationResult = await retryWithBackoff(() =>
+        this.discord.announceSponsorship(sponsor, tier, crestResult.badgeUrl)
+      );
+
+      await this.audit.log({
+        eventId,
+        stage: 'notified',
+        notificationResult,
+        timestamp: new Date()
+      });
+
+      // Step 7: Emit success event
+      this.emit('processing:complete', {
+        eventId,
+        sponsor,
+        tier,
+        duration: Date.now() - startTime
+      });
+
+      return {
+        success: true,
+        eventId,
+        sponsor,
+        tier,
+        processingTime: Date.now() - startTime
+      };
+
+    } catch (error) {
+      // Error handling with full context
+      await this.audit.log({
+        eventId,
+        stage: 'failed',
+        error: error.message,
+        stack: error.stack,
+        timestamp: new Date()
+      });
+
+      this.emit('processing:failed', {
+        eventId,
+        error,
+        rawEvent
+      });
+
+      throw error;
+    }
+  }
+
+  /**
+   * Parse raw webhook event into canonical RevenueEvent
+   */
+  private async parseEvent(raw: any, source: string): Promise<RevenueEvent> {
+    switch (source) {
+      case 'paypal':
+        return this.paypalHandler.parse(raw);
+      case 'github':
+        return this.githubHandler.parse(raw);
+      case 'patreon':
+        throw new Error('Patreon handler not yet implemented');
+      default:
+        throw new Error(`Unknown source: ${source}`);
+    }
+  }
+
+  /**
+   * Map verified event to canonical sponsor record
+   */
+  private async mapToSponsor(event: RevenueEvent, source: string): Promise<SponsorRecord> {
+    return {
+      id: event.transactionId,
+      source,
+      email: event.payerEmail,
+      githubUsername: await this.lookupGitHubUsername(event.payerEmail, source),
+      amount: event.amount,
+      currency: event.currency,
+      timestamp: event.timestamp,
+      recurring: event.recurring || false,
+      metadata: event.metadata || {}
+    };
+  }
+
+  /**
+   * Lookup GitHub username from email (cross-reference map or API)
+   */
+  private async lookupGitHubUsername(email: string, source: string): Promise<string | null> {
+    if (source === 'github') {
+      // GitHub events already have username
+      return email; // Will be overridden in handler
+    }
+
+    // For PayPal/Patreon, query mapping table or use GitHub API
+    // This would connect to a database or mapping service
+    return null; // Placeholder — implement actual lookup
+  }
+
+  /**
+   * Setup event listeners for monitoring
+   */
+  private setupEventListeners(): void {
+    this.on('processing:complete', (data) => {
+      console.log(`✅ Event ${data.eventId} processed in ${data.processingTime}ms`);
+    });
+
+    this.on('processing:failed', (data) => {
+      console.error(`❌ Event ${data.eventId} failed:`, data.error.message);
+    });
+  }
+
+  /**
+   * Graceful shutdown
+   */
+  async shutdown(): Promise<void> {
+    console.log('🛑 Shutting down Wealth Orchestrator...');
+    await this.audit.flush();
+    this.removeAllListeners();
+  }
+}
+
+// Type definitions
+interface OrchestratorConfig {
+  paypal: any;
+  github: any;
+  verification: any;
+  tiers: any;
+  discord: any;
+  vault: any;
+  auditPath: string;
+}
+
+interface ProcessingResult {
+  success: boolean;
+  eventId: string;
+  sponsor: SponsorRecord;
+  tier: CrestTier;
+  processingTime: number;
+}
+
+export default WealthOrchestrator;

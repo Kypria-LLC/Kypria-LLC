@@ -1,0 +1,123 @@
+.name);
+    
+    const description = template.description
+      .replace('{sponsor}', sponsor.githubUsername || sponsor.email)
+      .replace('{amount}', `$${sponsor.amount}`)
+      .replace('{tier}', tier.name)
+      .replace('{source}', this.formatSource(sponsor.source));
+
+    return {
+      title,
+      description,
+      color: parseInt(tier.color.replace('#', ''), 16),
+      thumbnail: {
+        url: badgeUrl
+      },
+      fields: [
+        {
+          name: '💰 Contribution',
+          value: `$${sponsor.amount} ${sponsor.currency}`,
+          inline: true
+        },
+        {
+          name: '🎖️ Tier',
+          value: tier.name,
+          inline: true
+        },
+        {
+          name: '📅 Date',
+          value: sponsor.timestamp.toLocaleDateString(),
+          inline: true
+        }
+      ],
+      footer: {
+        text: template.footer || 'Sacred Treasury Archive',
+        icon_url: 'https://raw.githubusercontent.com/Kypria-LLC/crest-vault/main/assets/seal.png'
+      },
+      timestamp: new Date().toISOString()
+    };
+  }
+
+  /**
+   * Format source name for display
+   */
+  private formatSource(source: string): string {
+    const sourceMap: Record<string, string> = {
+      paypal: 'PayPal',
+      github: 'GitHub Sponsors',
+      patreon: 'Patreon'
+    };
+    return sourceMap[source] || source;
+  }
+
+  /**
+   * Send milestone announcement (e.g., 100th sponsor)
+   */
+  async announceMilestone(milestone: number, totalSponsors: number): Promise<NotificationResult> {
+    const embed = {
+      title: `🎉 ${milestone} Sponsor Milestone Reached!`,
+      description: `The Sacred Treasury has been blessed by ${totalSponsors} generous patrons. The journey continues with unwavering support from our community.`,
+      color: 0xFFD700, // Gold
+      image: {
+        url: 'https://raw.githubusercontent.com/Kypria-LLC/crest-vault/main/assets/milestone-celebration.png'
+      },
+      timestamp: new Date().toISOString()
+    };
+
+    try {
+      const response = await fetch(this.webhookUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          username: 'Treasury Herald',
+          embeds: [embed]
+        })
+      });
+
+      return {
+        success: response.ok,
+        messageId: response.headers.get('x-discord-message-id'),
+        timestamp: new Date()
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: error.message,
+        timestamp: new Date()
+      };
+    }
+  }
+}
+
+// Type definitions
+interface DiscordConfig {
+  webhookUrl: string;
+}
+
+interface NotificationTemplates {
+  [key: string]: {
+    title: string;
+    description: string;
+    footer?: string;
+  };
+}
+
+interface NotificationResult {
+  success: boolean;
+  messageId?: string;
+  error?: string;
+  timestamp: Date;
+}
+
+interface DiscordEmbed {
+  title: string;
+  description: string;
+  color: number;
+  thumbnail?: { url: string };
+  fields?: Array<{ name: string; value: string; inline: boolean }>;
+  footer?: { text: string; icon_url: string };
+  timestamp: string;
+  image?: { url: string };
+}
+
+export default DiscordNotifier;

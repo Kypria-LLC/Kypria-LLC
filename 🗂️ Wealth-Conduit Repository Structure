@@ -1,0 +1,39 @@
+Kypria-LLC/wealth-conduit/
+├── src/
+│   ├── orchestrator/
+│   │   ├── main.ts                 # Core event dispatcher
+│   │   ├── event-router.ts         # Routes events to handlers
+│   │   ├── verification-engine.ts  # Transaction validation
+│   │   └── crest-assignment.ts     # Badge application logic
+│   ├── handlers/
+│   │   ├── paypal-handler.ts       # PayPal-specific logic
+│   │   ├── github-handler.ts       # GitHub Sponsors logic
+│   │   └── patreon-handler.ts      # Patreon logic (future)
+│   ├── integrations/
+│   │   ├── discord-notifier.ts     # Discord webhook dispatch
+│   │   ├── github-api.ts           # GitHub API calls
+│   │   └── crest-vault-sync.ts     # Updates crest-vault repo
+│   ├── models/
+│   │   ├── revenue-event.ts        # TypeScript interfaces
+│   │   └── sponsor-record.ts
+│   └── utils/
+│       ├── signature-validator.ts  # Webhook signature checks
+│       ├── retry-logic.ts          # Exponential backoff
+│       └── audit-logger.ts         # Immutable event log
+├── config/
+│   ├── event-bus.config.ts         # Event bus connection
+│   ├── tier-mapping.json           # Amount → Crest tier
+│   └── notification-templates.json # Discord embed templates
+├── scripts/
+│   ├── deploy.sh                   # Production deployment
+│   └── test-event.sh               # Send test webhook
+├── tests/
+│   ├── unit/
+│   └── integration/
+├── .github/
+│   └── workflows/
+│       ├── deploy.yml              # CI/CD pipeline
+│       └── test.yml                # Automated testing
+├── package.json
+├── tsconfig.json
+└── README.md
